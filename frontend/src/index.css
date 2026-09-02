@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-navy: #002145;
+  --color-navy-light: #0a3565;
+  --color-gold: #FFD100;
+  --color-gold-dark: #E6BC00;
+  --color-campus: #EEF4FF;
+  --color-warm: #F7F5F1;
+  --font-display: 'Fraunces', serif;
+  --font-sans: 'Outfit', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-warm);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: #d1d5db transparent;
+}
