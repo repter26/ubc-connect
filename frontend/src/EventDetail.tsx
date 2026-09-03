@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { View } from "./types";
-import { EVENTS } from "./Feed";
+import type { EVENT } from "./types";
 
 interface EventDetailProps {
   eventId: string | null;

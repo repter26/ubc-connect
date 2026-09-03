@@ -1,146 +1,10 @@
-import { useState } from "react";
-import type { View, UserProfile } from "./types";
-
-export const EVENTS = [
-  {
-    id: "1",
-    title: "AMS Clubs Days Spring 2025",
-    organizer: "AMS UBC",
-    source: "ams" as const,
-    category: "Social",
-    date: "Tue Feb 18",
-    time: "10:00 AM – 4:00 PM",
-    location: "Main Mall, UBC",
-    address: "Main Mall, Vancouver, BC V6T 1Z4",
-    attendees: 847,
-    image: "photo-1523580494863-6f3031224c94",
-    tags: ["free", "clubs", "networking"],
-    matchScore: 95,
-    description:
-      "Meet over 200 student clubs at UBC's biggest clubs showcase of the year. Whether you're looking for your sport, social scene, cause, or creative outlet — this is the place.",
-    going: [
-      { name: "Priya S.", avatar: "P", mutual: true },
-      { name: "Marcus W.", avatar: "M", mutual: true },
-      { name: "Jamie L.", avatar: "J", mutual: false },
-      { name: "Aisha K.", avatar: "A", mutual: false },
-    ],
-    meetupPoint: "Main Library steps (north entrance)",
-    transit: "UBC Bus Loop → walk 5 min south on Main Mall",
-  },
-  {
-    id: "2",
-    title: "Hack the Change 2025",
-    organizer: "UBC CS Club",
-    source: "club" as const,
-    category: "Tech",
-    date: "Sat Feb 22",
-    time: "9:00 AM – Sun 5:00 PM",
-    location: "ICICS Building, UBC",
-    address: "2366 Main Mall, Vancouver, BC V6T 1Z4",
-    attendees: 124,
-    image: "photo-1517694712202-14dd9538aa97",
-    tags: ["hackathon", "24h", "prizes"],
-    matchScore: 88,
-    description:
-      "Build tech solutions for social good in this 24-hour hackathon. Teams of 2–4. Prizes for best UI/UX, most impactful, and crowd favourite.",
-    going: [
-      { name: "Chris T.", avatar: "C", mutual: false },
-      { name: "Leila H.", avatar: "L", mutual: true },
-    ],
-    meetupPoint: "ICICS Main Entrance, 2366 Main Mall",
-    transit: "UBC Bus Loop → walk 10 min east",
-  },
-  {
-    id: "3",
-    title: "UBC Outing Club: Grouse Grind",
-    organizer: "UBC Outing Club",
-    source: "instagram" as const,
-    category: "Outdoors",
-    date: "Sun Feb 23",
-    time: "7:00 AM — shuttle departs",
-    location: "Grouse Mountain, North Van",
-    address: "6400 Nancy Greene Way, North Vancouver, BC",
-    attendees: 31,
-    image: "photo-1464822759023-fed622ff2c3b",
-    tags: ["hiking", "outdoors", "fitness"],
-    matchScore: 82,
-    description:
-      "Grind up the Grouse before the season ends. We leave from SUB bus circle at 6:45 AM sharp. Bring water, snacks, and layers. Club covers the shuttle.",
-    going: [
-      { name: "Sam R.", avatar: "S", mutual: true },
-      { name: "Nina P.", avatar: "N", mutual: true },
-      { name: "Ben K.", avatar: "B", mutual: false },
-    ],
-    meetupPoint: "SUB (AMS Nest) Bus Circle — arrive by 6:40 AM",
-    transit: "Shuttle from UBC to Grouse ($5 return, included)",
-  },
-  {
-    id: "4",
-    title: "Lunar New Year Gala",
-    organizer: "Chinese Varsity Club",
-    source: "club" as const,
-    category: "Cultural",
-    date: "Fri Feb 21",
-    time: "7:00 PM – 11:00 PM",
-    location: "Sage Bistro, UBC",
-    address: "6331 Crescent Rd, Vancouver, BC V6T 1Z2",
-    attendees: 189,
-    image: "photo-1514320291840-2e0a9bf2a9ae",
-    tags: ["gala", "cultural", "dinner"],
-    matchScore: 74,
-    description:
-      "A formal dinner celebrating the Lunar New Year featuring live performances, lucky draw prizes, and a traditional multi-course banquet.",
-    going: [
-      { name: "Wei L.", avatar: "W", mutual: false },
-      { name: "Mei Z.", avatar: "M", mutual: false },
-    ],
-    meetupPoint: "Sage Bistro main entrance, Rose Garden Road",
-    transit: "UBC Bus Loop → Bus 68 → walk 5 min",
-  },
-  {
-    id: "5",
-    title: "UBC Film Club: Ghibli Marathon",
-    organizer: "UBC Film Club",
-    source: "instagram" as const,
-    category: "Arts",
-    date: "Sat Feb 22",
-    time: "2:00 PM – 12:00 AM",
-    location: "Norm Theatre, UBC",
-    address: "6173 University Blvd, Vancouver, BC",
-    attendees: 67,
-    image: "photo-1536440136628-849c177e76a1",
-    tags: ["film", "free", "ghibli"],
-    matchScore: 91,
-    description:
-      "Back-to-back Studio Ghibli on the big screen: Spirited Away, Princess Mononoke, and Howls Moving Castle. Blankets encouraged.",
-    going: [
-      { name: "Jamie L.", avatar: "J", mutual: true },
-      { name: "Aisha K.", avatar: "A", mutual: false },
-    ],
-    meetupPoint: "Norm Theatre lobby — Nest Building",
-    transit: "UBC Bus Loop → walk 3 min to AMS Nest",
-  },
-  {
-    id: "6",
-    title: "Engineering Career Fair 2025",
-    organizer: "UBC Engineering Students Society",
-    source: "ams" as const,
-    category: "Career",
-    date: "Wed Feb 19",
-    time: "11:00 AM – 3:00 PM",
-    location: "Kaiser Building, UBC",
-    address: "2332 Main Mall, Vancouver, BC",
-    attendees: 312,
-    image: "photo-1540575467063-178a50c2df87",
-    tags: ["career", "networking", "internships"],
-    matchScore: 66,
-    description:
-      "Meet recruiters from 40+ top engineering and tech companies. Business casual dress. Bring printed resumes.",
-    going: [{ name: "Alex B.", avatar: "A", mutual: false }],
-    meetupPoint: "Kaiser Building Atrium, 2nd floor",
-    transit: "UBC Bus Loop → walk 8 min north on Main Mall",
-  },
-];
+import { useState, useEffect } from "react";
+import type {
+  View,
+  UserProfile,
+  Event as UbcEvent,
+  EventSource,
+} from "./types";
 
 const SOURCE_PILL: Record<string, string> = {
   ams: "bg-blue-100 text-blue-700",
@@ -228,6 +92,33 @@ export default function Feed({ navigate, profile }: FeedProps) {
   const [search, setSearch] = useState("");
   const [showTrustGate, setShowTrustGate] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [events, setEvents] = useState<UbcEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/events`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load events");
+        }
+
+        const data: UbcEvent[] = await response.json();
+        setEvents(data);
+      } catch {
+        setError("Events could not be loaded.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEvents();
+  }, []);
+
   const [form, setForm] = useState({
     title: "",
     date: "",
@@ -257,7 +148,36 @@ export default function Feed({ navigate, profile }: FeedProps) {
     }, 1800);
   };
 
-  const filtered = EVENTS.filter((e) => {
+  function formatEventDate(startsAt: string, timezone: string) {
+    return new Intl.DateTimeFormat("en-CA", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: timezone,
+    }).format(new Date(startsAt));
+  }
+
+  function formatEventTime(
+    startsAt: string,
+    endsAt: string | null,
+    timezone: string,
+  ) {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: timezone,
+    });
+
+    const start = formatter.format(new Date(startsAt));
+
+    if (!endsAt) {
+      return start;
+    }
+
+    return `${start} – ${formatter.format(new Date(endsAt))}`;
+  }
+
+  const filtered = events.filter((e) => {
     const okCat = category === "All" || e.category === category;
     const okSearch =
       !search ||
@@ -619,7 +539,12 @@ export default function Feed({ navigate, profile }: FeedProps) {
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    {event.date} · {event.time}
+                    {formatEventDate(event.startsAt, event.timezone)} ·
+                    {formatEventTime(
+                      event.startsAt,
+                      event.endsAt,
+                      event.timezone,
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 text-gray-400 text-xs mb-3">
                     <svg
