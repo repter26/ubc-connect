@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./db.js";
-
+const AMS_DEFAULT_IMAGE =
+  "https://amsclubs.ca/alma-mater-society/wp-content/uploads/sites/619/2024/09/Copy-of-AMS-Logo-Square-scaled.jpg";
 const app = express();
 
 app.use(
@@ -27,7 +28,6 @@ app.get("/api/events", async (_request, response) => {
 
     const results = events.map((event) => ({
       ...event,
-
       // Features we haven't built yet
       attendees: 0,
       going: [],

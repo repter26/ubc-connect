@@ -19,6 +19,13 @@ const SOURCE_LABEL: Record<string, string> = {
   reddit: "Reddit",
 };
 
+const DEFAULT_EVENT_IMAGES: Record<EventSource, string> = {
+  ams: "../public/images/ams.jpg",
+  ubc: "/images/event-defaults/ubc.png",
+  instagram: "/images/event-defaults/instagram.png",
+  "club-website": "/images/event-defaults/club-website.png",
+};
+
 const ROOMS = [
   {
     id: "1",
@@ -504,7 +511,7 @@ export default function Feed({ navigate, profile }: FeedProps) {
               >
                 <div className="relative h-40 bg-gray-100 overflow-hidden">
                   <img
-                    src={`https://images.unsplash.com/${event.image}?w=600&h=240&fit=crop&auto=format`}
+                    src={event.imageUrl ?? DEFAULT_EVENT_IMAGES[event.source]}
                     alt={event.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
