@@ -1,8 +1,7 @@
 import { prisma } from "../db.js";
 import { convert } from "html-to-text";
 
-const AMS_API =
-  "https://www.ams.ubc.ca/wp-json/tribe/events/v1/events?per_page=20";
+const AMS_API = "https://www.ams.ubc.ca/wp-json/tribe/events/v1/events";
 
 type AmsVenue = {
   venue?: string;
@@ -49,6 +48,8 @@ type AmsEvent = {
 
 type AmsResponse = {
   events: AmsEvent[];
+  total: number;
+  total_pages: number;
 };
 
 function parseUtcDate(value: string): Date {
@@ -77,65 +78,70 @@ function buildAddress(venue?: AmsVenue): string | null {
 
 async function importAmsEvents() {
   console.log("Importing AMS events...");
+  let page = 1;
+  let maxPage = 1;
+  do {
+    console.log(`Fetching page ${page}`);
+    const response = await fetch(`${AMS_API}?per_page=100&page=${page}`);
 
-  const response = await fetch(AMS_API);
+    if (!response.ok) {
+      throw new Error(`AMS request failed with status ${response.status}`);
+    }
 
-  if (!response.ok) {
-    throw new Error(`AMS request failed with status ${response.status}`);
-  }
+    const data = await response.json();
 
-  const data = await response.json();
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      !("events" in data) ||
+      !Array.isArray(data.events)
+    ) {
+      throw new Error("AMS returned an unexpected response structure");
+    }
 
-  if (
-    typeof data !== "object" ||
-    data === null ||
-    !("events" in data) ||
-    !Array.isArray(data.events)
-  ) {
-    throw new Error("AMS returned an unexpected response structure");
-  }
+    const result = data as AmsResponse;
+    maxPage = result.total_pages;
+    for (const amsEvent of result.events) {
+      const eventData = {
+        externalId: String(amsEvent.id),
+        title: stripHtml(amsEvent.title),
+        organizer: "AMS UBC",
+        source: "ams",
+        category: amsEvent.categories?.[0]?.name ?? "General",
 
-  const result = data as AmsResponse;
+        startsAt: parseUtcDate(amsEvent.utc_start_date),
+        endsAt: amsEvent.utc_end_date
+          ? parseUtcDate(amsEvent.utc_end_date)
+          : null,
 
-  for (const amsEvent of result.events) {
-    const eventData = {
-      externalId: String(amsEvent.id),
-      title: stripHtml(amsEvent.title),
-      organizer: "AMS UBC",
-      source: "ams",
-      category: amsEvent.categories?.[0]?.name ?? "General",
+        timezone: "America/Vancouver",
 
-      startsAt: parseUtcDate(amsEvent.utc_start_date),
-      endsAt: amsEvent.utc_end_date
-        ? parseUtcDate(amsEvent.utc_end_date)
-        : null,
+        location: amsEvent.venue?.venue ?? "UBC Vancouver",
+        address:
+          buildAddress(amsEvent.venue) ??
+          "6200 University Blvd, Vancouver, BC V6T 1Z4",
 
-      timezone: "America/Vancouver",
+        imageUrl: amsEvent.image === false ? null : amsEvent.image.url,
+        tags: amsEvent.tags?.map((tag) => tag.name.toLowerCase()) ?? [],
 
-      location: amsEvent.venue?.venue ?? "UBC Vancouver",
-      address:
-        buildAddress(amsEvent.venue) ??
-        "6200 University Blvd, Vancouver, BC V6T 1Z4",
+        description: stripHtml(amsEvent.description),
+        sourceUrl: amsEvent.url,
+      };
 
-      imageUrl: amsEvent.image === false ? null : amsEvent.image.url,
-      tags: amsEvent.tags?.map((tag) => tag.name.toLowerCase()) ?? [],
-
-      description: stripHtml(amsEvent.description),
-      sourceUrl: amsEvent.url,
-    };
-
-    await prisma.event.upsert({
-      where: {
-        source_externalId: {
-          source: "ams",
-          externalId: eventData.externalId,
+      await prisma.event.upsert({
+        where: {
+          source_externalId: {
+            source: "ams",
+            externalId: eventData.externalId,
+          },
         },
-      },
-      update: eventData,
-      create: eventData,
-    });
-  }
-  console.log(`Imported ${result.events.length} AMS events.`);
+        update: eventData,
+        create: eventData,
+      });
+    }
+    console.log(`Imported ${result.events.length} AMS events.`);
+    page++;
+  } while (page <= maxPage);
 }
 
 importAmsEvents()
