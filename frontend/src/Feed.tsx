@@ -71,6 +71,14 @@ const CATEGORIES = [
   "Career",
 ];
 
+const TIME_RANGES = [
+  "All Time",
+  "Today",
+  "This week",
+  "This month",
+  "This year",
+];
+
 interface FeedProps {
   navigate: (v: View, eventId?: string) => void;
   profile: UserProfile | null;
@@ -96,6 +104,7 @@ const CATEGORIES_EVENT = [
 
 export default function Feed({ navigate, profile }: FeedProps) {
   const [category, setCategory] = useState("All");
+  const [timeRange, setTimeRange] = useState("All Time");
   const [search, setSearch] = useState("");
   const [showTrustGate, setShowTrustGate] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -186,13 +195,42 @@ export default function Feed({ navigate, profile }: FeedProps) {
 
   const filtered = events.filter((e) => {
     const okCat = category === "All" || e.category === category;
+    const okTime =
+      timeRange === "All Time" || TimeRangeMatch(timeRange, e.startsAt);
     const okSearch =
       !search ||
       e.title.toLowerCase().includes(search.toLowerCase()) ||
       e.location.toLowerCase().includes(search.toLowerCase());
-    return okCat && okSearch;
+    return okCat && okSearch && okTime;
   });
 
+  function TimeRangeMatch(timeRange: string, eventDate: string) {
+    const now = new Date();
+    const event = new Date(eventDate);
+
+    switch (timeRange) {
+      case "Today":
+        return (
+          event.getFullYear() === now.getFullYear() &&
+          event.getMonth() === now.getMonth() &&
+          event.getDate() === now.getDate()
+        );
+      case "This week":
+        return (
+          event.getFullYear() === now.getFullYear() &&
+          event.getMonth() === now.getMonth() &&
+          event.getDate() >= now.getDate() &&
+          event.getDate() <= now.getDate() + 7
+        );
+      case "This month":
+        return (
+          event.getFullYear() === now.getFullYear() &&
+          event.getMonth() === now.getMonth()
+        );
+      case "This year":
+        return event.getFullYear() === now.getFullYear();
+    }
+  }
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       {/* Trust gate modal */}
@@ -445,7 +483,8 @@ export default function Feed({ navigate, profile }: FeedProps) {
             Good morning, {profile?.firstName ?? "Alex"} 👋
           </h1>
           <p className="text-gray-400 text-sm mt-0.5">
-            {filtered.length} events matching your interests this week
+            {filtered.length} events matching your interests{" "}
+            {timeRange.charAt(0).toLowerCase() + timeRange.slice(1)}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -485,7 +524,7 @@ export default function Feed({ navigate, profile }: FeedProps) {
         {/* Main */}
         <div>
           {/* Category pills */}
-          <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
+          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -497,6 +536,22 @@ export default function Feed({ navigate, profile }: FeedProps) {
                 }`}
               >
                 {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
+            {TIME_RANGES.map((time) => (
+              <button
+                key={time}
+                onClick={() => setTimeRange(time)}
+                className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  timeRange === time
+                    ? "bg-navy text-white"
+                    : "bg-white border border-gray-200 text-gray-600 hover:border-navy/30"
+                }`}
+              >
+                {time}
               </button>
             ))}
           </div>
