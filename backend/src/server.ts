@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import { prisma } from "./db.js";
 const AMS_DEFAULT_IMAGE =
   "https://amsclubs.ca/alma-mater-society/wp-content/uploads/sites/619/2024/09/Copy-of-AMS-Logo-Square-scaled.jpg";
@@ -13,6 +15,21 @@ app.use(
 );
 
 app.use(express.json());
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["http://localhost:5173"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(socket.id);
+  socket.on("message", (data) => {
+    console.log("Received message:", data);
+    socket.broadcast.emit("message", data);
+  });
+});
 
 app.get("/api/health", (_request, response) => {
   response.json({ status: "ok" });
@@ -46,6 +63,6 @@ app.get("/api/events", async (_request, response) => {
   }
 });
 
-app.listen(3000, () => {
+httpServer.listen(3000, () => {
   console.log("Backend running at http://localhost:3000");
 });
