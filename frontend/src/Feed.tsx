@@ -82,6 +82,9 @@ const TIME_RANGES = [
 interface FeedProps {
   navigate: (v: View, eventId?: string) => void;
   profile: UserProfile | null;
+  events: UbcEvent[];
+  loading: boolean;
+  error: string;
 }
 
 // Mock trust state — same values as Profile.tsx
@@ -102,15 +105,18 @@ const CATEGORIES_EVENT = [
   "Workshop",
 ];
 
-export default function Feed({ navigate, profile }: FeedProps) {
+export default function Feed({
+  navigate,
+  profile,
+  events,
+  loading,
+  error,
+}: FeedProps) {
   const [category, setCategory] = useState("All");
   const [timeRange, setTimeRange] = useState("All Time");
   const [search, setSearch] = useState("");
   const [showTrustGate, setShowTrustGate] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [events, setEvents] = useState<UbcEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadEvents() {

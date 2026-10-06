@@ -36,7 +36,7 @@ export type Event = {
   endsAt: string | null;
   timezone: string;
   location: string;
-  address: string | null;
+  address: string;
   imageUrl: string | null;
   tags: string[];
   description: string;

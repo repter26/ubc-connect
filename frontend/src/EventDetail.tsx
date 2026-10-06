@@ -1,10 +1,12 @@
 import { useState } from "react";
-import type { View } from "./types";
-import type { EVENT } from "./types";
+import type { View, Event as UbcEvent } from "./types";
 
 interface EventDetailProps {
   eventId: string | null;
   navigate: (v: View) => void;
+  events: UbcEvent[];
+  loading: boolean;
+  error: string;
 }
 
 const SOURCE_BADGE: Record<string, string> = {
@@ -382,7 +384,13 @@ const POLL_TEMPLATES = [
 
 const MAX_GROUP = 10;
 
-export default function EventDetail({ eventId, navigate }: EventDetailProps) {
+export default function EventDetail({
+  eventId,
+  navigate,
+  events,
+  loading,
+  error,
+}: EventDetailProps) {
   const [tab, setTab] = useState<Tab>("info");
   const [joinedGroupId, setJoinedGroupId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
@@ -513,7 +521,19 @@ export default function EventDetail({ eventId, navigate }: EventDetailProps) {
     });
   };
 
-  const event = EVENTS.find((e) => e.id === eventId) ?? EVENTS[0];
+  const event = events.find((e) => e.id === eventId);
+
+  if (loading) return <p>Loading event...</p>;
+  if (error) return <p>{error}</p>;
+
+  if (!event) {
+    return (
+      <div>
+        <p>Event not found.</p>
+        <button onClick={() => navigate("feed")}>Back to events</button>
+      </div>
+    );
+  }
   const groups: GoingGroup[] = EVENT_GROUPS[event.id] ?? [];
   const joinedGroup = groups.find((g) => g.id === joinedGroupId) ?? null;
 
@@ -775,7 +795,7 @@ export default function EventDetail({ eventId, navigate }: EventDetailProps) {
                 {event.title}
               </button>
               <div className="text-gray-400 text-xs mt-1">
-                {event.date} · {event.time}
+                {event.startsAt} · {event.endsAt}
               </div>
               <div className="text-gray-400 text-xs mt-0.5">
                 📍 {event.location}
@@ -1287,11 +1307,7 @@ export default function EventDetail({ eventId, navigate }: EventDetailProps) {
       {/* Hero */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-5">
         <div className="relative h-48">
-          <img
-            src={`https://images.unsplash.com/${event.image}?w=1000&h=400&fit=crop&auto=format`}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
+          <img alt={event.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-navy/75 to-transparent" />
           <div className="absolute bottom-4 left-5 right-5">
             <div className="flex items-center gap-2 mb-2">
@@ -1314,7 +1330,10 @@ export default function EventDetail({ eventId, navigate }: EventDetailProps) {
           </div>
         </div>
         <div className="px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-100">
-          <InfoItem icon="calendar" text={`${event.date} · ${event.time}`} />
+          <InfoItem
+            icon="calendar"
+            text={`${event.startsAt} · ${event.endsAt}`}
+          />
           <InfoItem icon="location" text={event.location} />
           <InfoItem
             icon="people"
