@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type {
   View,
   UserProfile,
@@ -117,29 +117,6 @@ export default function Feed({
   const [search, setSearch] = useState("");
   const [showTrustGate, setShowTrustGate] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-
-  useEffect(() => {
-    async function loadEvents() {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/events`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to load events");
-        }
-
-        const data: UbcEvent[] = await response.json();
-        setEvents(data);
-      } catch {
-        setError("Events could not be loaded.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadEvents();
-  }, []);
 
   const [form, setForm] = useState({
     title: "",
@@ -563,6 +540,8 @@ export default function Feed({
           </div>
 
           {/* Event grid */}
+          {loading && <p className="text-gray-500 text-sm">Loading events...</p>}
+          {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map((event) => (
               <button

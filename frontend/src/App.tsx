@@ -72,6 +72,7 @@ export default function App() {
       )}
       {view === "event" && (
         <EventDetail
+          key={selectedEvent}
           eventId={selectedEvent}
           navigate={navigate}
           events={events}

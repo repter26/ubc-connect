@@ -46,3 +46,8 @@ export { Prisma }
  * 
  */
 export type Event = Prisma.EventModel
+/**
+ * Model Room
+ * 
+ */
+export type Room = Prisma.RoomModel

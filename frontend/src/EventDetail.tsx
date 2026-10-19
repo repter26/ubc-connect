@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { View, Event as UbcEvent } from "./types";
+import type { View, Room, Event as UbcEvent } from "./types";
 
 interface EventDetailProps {
   eventId: string | null;
@@ -84,278 +84,9 @@ interface SystemMessage {
 }
 type ChatItem = PollMessage | TextMessage | SystemMessage;
 
-interface GoingGroup {
-  id: string;
-  name: string;
-  compatibility: number;
-  sharedWith: string[];
-  vibe: string;
+interface GoingGroup extends Room {
   members: Member[];
   chat: ChatItem[];
-}
-
-const EVENT_GROUPS: Record<string, GoingGroup[]> = {
-  "1": [
-    {
-      id: "g1a",
-      name: "Main Mall Crew",
-      compatibility: 92,
-      sharedWith: ["Priya S.", "Marcus W."],
-      vibe: "Chill walkers · stopping at every table",
-      members: [
-        { name: "Priya S.", avatar: "P", year: "2nd", trust: "trusted" },
-        { name: "Marcus W.", avatar: "M", year: "4th", trust: "regular" },
-        {
-          name: "Jamie L.",
-          avatar: "J",
-          year: "3rd",
-          trust: "caution",
-          strikes: 1,
-        },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Priya S.",
-          avatar: "P",
-          text: "Meeting at the flagpole at 9:45, then walking down together!",
-          time: "9:35 AM",
-        },
-        {
-          id: 2,
-          type: "poll",
-          user: "Marcus W.",
-          avatar: "M",
-          time: "9:40 AM",
-          question: "First stop on Main Mall?",
-          options: [
-            {
-              label: "🎨 Arts clubs section",
-              voters: ["Priya S.", "Jamie L."],
-            },
-            { label: "⚽ Sports clubs first", voters: ["Marcus W."] },
-            { label: "Wander and see", voters: [] },
-          ],
-        },
-      ],
-    },
-    {
-      id: "g1b",
-      name: "Early Birds",
-      compatibility: 74,
-      sharedWith: ["Aisha K."],
-      vibe: "Getting there at 10 AM sharp",
-      members: [
-        { name: "Aisha K.", avatar: "A", year: "3rd", trust: "regular" },
-        {
-          name: "Wei L.",
-          avatar: "W",
-          year: "2nd",
-          trust: "restricted",
-          strikes: 3,
-        },
-        { name: "Ryo N.", avatar: "R", year: "4th", trust: "trusted" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Aisha K.",
-          avatar: "A",
-          text: "Bus from Exchange at 9:40 — see you there!",
-          time: "9:00 AM",
-        },
-      ],
-    },
-  ],
-  "2": [
-    {
-      id: "g2a",
-      name: "Team Formation",
-      compatibility: 89,
-      sharedWith: ["Leila H."],
-      vibe: "Already forming a team · social good theme",
-      members: [
-        { name: "Leila H.", avatar: "L", year: "3rd", trust: "trusted" },
-        { name: "Chris T.", avatar: "C", year: "2nd", trust: "regular" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Leila H.",
-          avatar: "L",
-          text: "We're doing a mental health check-in app. Need one more — interested?",
-          time: "9:15 AM",
-        },
-        {
-          id: 2,
-          type: "poll",
-          user: "Leila H.",
-          avatar: "L",
-          time: "9:18 AM",
-          question: "Tech stack vote",
-          options: [
-            { label: "React + Node", voters: ["Leila H.", "Chris T."] },
-            { label: "Next.js + Supabase", voters: [] },
-            { label: "Flutter", voters: [] },
-          ],
-        },
-      ],
-    },
-    {
-      id: "g2b",
-      name: "Solo → Maybe Team",
-      compatibility: 61,
-      sharedWith: [],
-      vibe: "Haven't formed a team yet · open to merging",
-      members: [
-        {
-          name: "Dev M.",
-          avatar: "D",
-          year: "4th",
-          trust: "caution",
-          strikes: 2,
-        },
-        { name: "Ingrid T.", avatar: "I", year: "2nd", trust: "regular" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Dev M.",
-          avatar: "D",
-          text: "Anyone else going solo? Open to teaming up last minute.",
-          time: "10:00 AM",
-        },
-      ],
-    },
-  ],
-  "3": [
-    {
-      id: "g3a",
-      name: "Shuttle Crew",
-      compatibility: 96,
-      sharedWith: ["Sam R.", "Nina P."],
-      vibe: "Taking the club shuttle · leaving SUB 6:45 AM",
-      members: [
-        { name: "Sam R.", avatar: "S", year: "3rd" },
-        { name: "Nina P.", avatar: "N", year: "2nd" },
-        { name: "Ben K.", avatar: "B", year: "4th" },
-        { name: "Maya T.", avatar: "M", year: "1st" },
-        { name: "Leo V.", avatar: "L", year: "3rd" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Sam R.",
-          avatar: "S",
-          text: "SUB bus circle at 6:40 to be safe. Shuttle leaves at 6:45 sharp!",
-          time: "10:30 AM",
-        },
-        {
-          id: 2,
-          type: "poll",
-          user: "Ben K.",
-          avatar: "B",
-          time: "10:45 AM",
-          question: "Post-grind food?",
-          options: [
-            {
-              label: "🍺 Chalet at the top",
-              voters: ["Sam R.", "Ben K.", "Leo V."],
-            },
-            {
-              label: "🚐 Head back and eat in Kits",
-              voters: ["Nina P.", "Maya T."],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "g3b",
-      name: "Uber Carpool",
-      compatibility: 71,
-      sharedWith: [],
-      vibe: "Splitting an Uber directly from UBC",
-      members: [
-        { name: "Hana M.", avatar: "H", year: "2nd" },
-        { name: "Oscar V.", avatar: "O", year: "3rd" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Hana M.",
-          avatar: "H",
-          text: "Need 2 more for the Uber — $18 split 4 ways. Leaving UBC at 6:15 AM.",
-          time: "9:00 AM",
-        },
-      ],
-    },
-  ],
-  "5": [
-    {
-      id: "g5a",
-      name: "Front Row Club",
-      compatibility: 88,
-      sharedWith: ["Jamie L.", "Aisha K."],
-      vibe: "Arriving early · crying together guaranteed",
-      members: [
-        { name: "Jamie L.", avatar: "J", year: "2nd" },
-        { name: "Aisha K.", avatar: "A", year: "3rd" },
-        { name: "Priya S.", avatar: "P", year: "1st" },
-      ],
-      chat: [
-        {
-          id: 1,
-          type: "text",
-          user: "Jamie L.",
-          avatar: "J",
-          text: "Blankets and snacks — Mononoke starts at 6:30.",
-          time: "Yesterday 8PM",
-        },
-        {
-          id: 2,
-          type: "poll",
-          user: "Aisha K.",
-          avatar: "A",
-          time: "Yesterday 8:35 PM",
-          question: "Front row or middle?",
-          options: [
-            {
-              label: "🎬 Front row — full immersion",
-              voters: ["Aisha K.", "Priya S."],
-            },
-            { label: "🎭 Middle — best view", voters: ["Jamie L."] },
-          ],
-        },
-      ],
-    },
-  ],
-};
-
-function compatColor(n: number) {
-  if (n >= 85)
-    return {
-      bar: "bg-green-500",
-      badge: "bg-green-50 text-green-700",
-      label: "Excellent match",
-    };
-  if (n >= 70)
-    return {
-      bar: "bg-blue-500",
-      badge: "bg-blue-50 text-blue-700",
-      label: "Good match",
-    };
-  return {
-    bar: "bg-amber-400",
-    badge: "bg-amber-50 text-amber-700",
-    label: "Decent match",
-  };
 }
 
 const POLL_TEMPLATES = [
@@ -382,8 +113,6 @@ const POLL_TEMPLATES = [
   },
 ];
 
-const MAX_GROUP = 10;
-
 export default function EventDetail({
   eventId,
   navigate,
@@ -404,7 +133,7 @@ export default function EventDetail({
   const [reportTarget, setReportTarget] = useState<string | null>(null);
 
   // Mock: the current user's trust tier (change to 'restricted' to see penalty UI)
-  const MY_TRUST: TrustTier = "regular";
+  const [MY_TRUST] = useState<TrustTier>("regular");
   const myStrikes = 0;
 
   // Pinned coordination votes per group — { groupId: { meetup: Record<option, voters[]>, transport: Record<option, voters[]> } }
@@ -413,86 +142,7 @@ export default function EventDetail({
       string,
       { meetup: Record<string, string[]>; transport: Record<string, string[]> }
     >
-  >({
-    g1a: {
-      meetup: {
-        "Main Library steps": ["Priya S.", "Marcus W."],
-        "AMS Nest entrance": ["Jamie L."],
-      },
-      transport: { "🚶 Walk": ["Priya S.", "Marcus W.", "Jamie L."] },
-    },
-    g1b: {
-      meetup: {
-        "AMS Nest entrance": ["Aisha K.", "Wei L."],
-        "At the venue": ["Ryo N."],
-      },
-      transport: { "🚌 Bus": ["Aisha K.", "Wei L."], "🚶 Walk": ["Ryo N."] },
-    },
-    g2a: {
-      meetup: { "ICICS lobby": ["Leila H.", "Chris T."] },
-      transport: { "🚶 Walk": ["Leila H."], "🚴 Bike": ["Chris T."] },
-    },
-    g2b: {
-      meetup: {},
-      transport: { "🚌 Bus": ["Dev M."], "🚶 Walk": ["Ingrid T."] },
-    },
-    g3a: {
-      meetup: {
-        "SUB bus circle": ["Sam R.", "Nina P.", "Ben K.", "Maya T.", "Leo V."],
-      },
-      transport: {
-        "🚐 Club shuttle": ["Sam R.", "Nina P.", "Ben K.", "Maya T.", "Leo V."],
-      },
-    },
-    g3b: {
-      meetup: { "Wesbrook Village": ["Hana M.", "Oscar V."] },
-      transport: { "🚗 Uber split": ["Hana M.", "Oscar V."] },
-    },
-    g5a: {
-      meetup: {
-        "Norm Theatre entrance": ["Aisha K.", "Priya S."],
-        "Koerner's Pub": ["Jamie L."],
-      },
-      transport: { "🚶 Walk": ["Jamie L.", "Aisha K.", "Priya S."] },
-    },
-  });
-
-  const COORD_OPTIONS: Record<
-    string,
-    { meetup: string[]; transport: string[] }
-  > = {
-    "1": {
-      meetup: [
-        "Main Library steps",
-        "AMS Nest entrance",
-        "Flagpole Main Mall",
-        "At the venue",
-      ],
-      transport: ["🚶 Walk", "🚌 Bus", "🚗 Uber split", "🚴 Bike"],
-    },
-    "2": {
-      meetup: ["ICICS lobby", "SUB / AMS Nest", "Bus loop", "At the venue"],
-      transport: ["🚶 Walk", "🚌 Bus", "🚗 Uber split", "🚴 Bike"],
-    },
-    "3": {
-      meetup: [
-        "SUB bus circle",
-        "Wesbrook Village",
-        "Bus loop",
-        "At the venue",
-      ],
-      transport: ["🚐 Club shuttle", "🚗 Uber split", "🚌 Transit", "🚘 Drive"],
-    },
-    "5": {
-      meetup: [
-        "Norm Theatre entrance",
-        "Koerner's Pub",
-        "AMS Nest lobby",
-        "At the venue",
-      ],
-      transport: ["🚶 Walk", "🚌 Bus", "🚗 Uber split", "🚴 Bike"],
-    },
-  };
+  >({});
 
   const voteCoord = (
     groupId: string,
@@ -502,7 +152,6 @@ export default function EventDetail({
     setCoordVotes((prev) => {
       const group = prev[groupId] ?? { meetup: {}, transport: {} };
       const current = { ...group[type] };
-      const alreadyVoted = Object.values(current).flat().includes("You");
       // Remove 'You' from all options of this type
       const cleared = Object.fromEntries(
         Object.entries(current).map(([k, v]) => [
@@ -534,17 +183,21 @@ export default function EventDetail({
       </div>
     );
   }
-  const groups: GoingGroup[] = EVENT_GROUPS[event.id] ?? [];
+  // Membership and messages remain local until their backend endpoints exist.
+  const groups: GoingGroup[] = (event.rooms ?? []).map((room) => ({
+    ...room,
+    members: room.id === joinedGroupId
+      ? [{ name: "You", avatar: "A", year: "3rd", you: true }]
+      : [],
+    chat: extraItems[room.id] ?? [],
+  }));
   const joinedGroup = groups.find((g) => g.id === joinedGroupId) ?? null;
 
-  const allItems: ChatItem[] = joinedGroup
-    ? [...joinedGroup.chat, ...(extraItems[joinedGroup.id] ?? [])]
-    : [];
+  const allItems: ChatItem[] = joinedGroup?.chat ?? [];
 
   const joinGroup = (id: string) => {
     const g = groups.find((x) => x.id === id);
-    if (!g || g.members.length >= MAX_GROUP) return;
-    g.members.push({ name: "You", avatar: "A", year: "3rd", you: true });
+    if (!g || g.members.length >= g.capacity) return;
     setJoinedGroupId(id);
     setIsGoing(true);
     setChatOpen(true);
@@ -552,7 +205,7 @@ export default function EventDetail({
 
   const leaveGroup = () => {
     if (!joinedGroup) return;
-    joinedGroup.members = joinedGroup.members.filter((m) => !m.you);
+    setIsGoing(false);
     setJoinedGroupId(null);
     setLeaveConfirm(false);
     setChatOpen(false);
@@ -612,12 +265,10 @@ export default function EventDetail({
           })),
         };
       });
-    joinedGroup.chat = update(joinedGroup.chat) as ChatItem[];
     setExtraItems((e) => ({
       ...e,
       [joinedGroup.id]: update(e[joinedGroup.id] ?? []) as ChatItem[],
     }));
-    setExtraItems((e) => ({ ...e }));
   };
 
   // ── Full-screen group chat ──────────────────────────────────────────────────
@@ -731,13 +382,8 @@ export default function EventDetail({
                 >
                   {joinedGroup.name}
                 </span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${compatColor(joinedGroup.compatibility).badge}`}
-                >
-                  {joinedGroup.compatibility}%
-                </span>
               </div>
-              <p className="text-gray-400 text-xs">{joinedGroup.vibe}</p>
+              <p className="text-gray-400 text-xs">Meet up for {event.title}</p>
             </div>
 
             {/* Decisions summary */}
@@ -808,7 +454,7 @@ export default function EventDetail({
                   Members
                 </div>
                 <span className="text-xs text-gray-400">
-                  {joinedGroup.members.length}/{MAX_GROUP}
+                  {joinedGroup.members.length}/{joinedGroup.capacity}
                 </span>
               </div>
               <div className="space-y-2.5">
@@ -907,7 +553,10 @@ export default function EventDetail({
 
             {/* ── PINNED COORDINATION STRIP ────────────────────────────────── */}
             {(() => {
-              const opts = COORD_OPTIONS[event.id] ?? COORD_OPTIONS["1"];
+              const opts = {
+                meetup: [event.location, "AMS Nest entrance", "Bus loop"],
+                transport: ["🚶 Walk", "🚌 Bus", "🚗 Uber split", "🚴 Bike"],
+              };
               const gVotes = coordVotes[joinedGroup.id] ?? {
                 meetup: {},
                 transport: {},
@@ -919,9 +568,6 @@ export default function EventDetail({
                 ([, v]) => (v as string[]).includes("You"),
               )?.[0];
               const topMeetup = Object.entries(gVotes.meetup).sort(
-                (a, b) => (b[1] as string[]).length - (a[1] as string[]).length,
-              )[0];
-              const topTransport = Object.entries(gVotes.transport).sort(
                 (a, b) => (b[1] as string[]).length - (a[1] as string[]).length,
               )[0];
 
@@ -1465,7 +1111,7 @@ export default function EventDetail({
                   Going-together groups
                 </h3>
                 <p className="text-gray-400 text-xs mt-0.5">
-                  Max {MAX_GROUP} people · ranked by compatibility
+                  Find a room and plan your meetup
                 </p>
               </div>
               {joinedGroup && (
@@ -1504,9 +1150,8 @@ export default function EventDetail({
 
             <div className="space-y-4">
               {groups.map((group) => {
-                const c = compatColor(group.compatibility);
                 const isJoined = joinedGroupId === group.id;
-                const full = group.members.length >= MAX_GROUP && !isJoined;
+                const full = group.members.length >= group.capacity && !isJoined;
                 const polls = group.chat.filter(
                   (i): i is PollMessage => i.type === "poll",
                 );
@@ -1536,11 +1181,6 @@ export default function EventDetail({
                             >
                               {group.name}
                             </span>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.badge}`}
-                            >
-                              {c.label}
-                            </span>
                             {isJoined && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-navy text-white font-medium">
                                 ✓ Joined
@@ -1558,37 +1198,11 @@ export default function EventDetail({
                               </span>
                             )}
                           </div>
-                          <div className="text-gray-400 text-xs mt-1 italic">
-                            {group.vibe}
+                          <div className="text-gray-400 text-xs mt-1">
+                            Up to {group.capacity} people
                           </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <div
-                            className="text-2xl font-semibold text-navy leading-none"
-                            style={{ fontFamily: "var(--font-display)" }}
-                          >
-                            {group.compatibility}
-                            <span className="text-sm text-gray-400">%</span>
-                          </div>
-                          <div className="text-gray-400 text-xs">match</div>
-                        </div>
                       </div>
-
-                      <div className="h-1 bg-gray-100 rounded-full mb-3">
-                        <div
-                          className={`h-1 rounded-full ${c.bar}`}
-                          style={{ width: `${group.compatibility}%` }}
-                        />
-                      </div>
-
-                      {group.sharedWith.length > 0 && (
-                        <div className="text-xs text-gray-400 mb-3">
-                          You know:{" "}
-                          <span className="text-navy font-medium">
-                            {group.sharedWith.join(", ")}
-                          </span>
-                        </div>
-                      )}
 
                       {decisions.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -1626,7 +1240,7 @@ export default function EventDetail({
                           })}
                         </div>
                         <span className="text-gray-400 text-xs">
-                          {group.members.length}/{MAX_GROUP} people
+                          {group.members.length}/{group.capacity} people
                         </span>
                         {flaggedMembers.length > 0 && (
                           <div className="ml-auto flex items-center gap-1">

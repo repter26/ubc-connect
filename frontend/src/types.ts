@@ -41,7 +41,7 @@ export type Event = {
   tags: string[];
   description: string;
   sourceUrl: string;
-
+  rooms: Room[];
   // UBC Connect information
   attendees: number;
   going: EventAttendee[];
@@ -52,4 +52,11 @@ export type Event = {
   // Group coordination
   meetupPoint: string | null;
   transit: string | null;
+};
+
+export type Room = {
+  id: string;
+  name: string;
+  capacity: number;
+  eventId: string;
 };

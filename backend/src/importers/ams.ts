@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "../db.js";
 import { convert } from "html-to-text";
 
@@ -10,7 +11,6 @@ type AmsVenue = {
   province?: string;
   zip?: string;
 };
-
 type AmsOrganizer = {
   organizer: string;
 };
@@ -102,6 +102,16 @@ async function importAmsEvents() {
     const result = data as AmsResponse;
     maxPage = result.total_pages;
     for (const amsEvent of result.events) {
+      let eventRooms = [];
+      for (let i = 0; i < 4; i++) {
+        eventRooms.push({
+          id: String(i),
+          name: "Room " + String(i),
+          capacity: 10,
+          eventId: String(amsEvent.id),
+        });
+      }
+
       const eventData = {
         externalId: String(amsEvent.id),
         title: stripHtml(amsEvent.title),
@@ -128,6 +138,11 @@ async function importAmsEvents() {
         sourceUrl: amsEvent.url,
       };
 
+      const defaultRooms = Array.from({ length: 4 }, (_, i) => ({
+        name: `Room ${i + 1}`,
+        capacity: 10,
+      }));
+
       await prisma.event.upsert({
         where: {
           source_externalId: {
@@ -136,7 +151,12 @@ async function importAmsEvents() {
           },
         },
         update: eventData,
-        create: eventData,
+        create: {
+          ...eventData,
+          rooms: {
+            create: defaultRooms,
+          },
+        },
       });
     }
     console.log(`Imported ${result.events.length} AMS events.`);

@@ -41,6 +41,7 @@ app.get("/api/events", async (_request, response) => {
       orderBy: {
         startsAt: "asc",
       },
+      include: { rooms: true },
     });
 
     const results = events.map((event) => ({
