@@ -6,6 +6,7 @@ import Onboarding from "./Onboarding";
 import Feed from "./Feed";
 import EventDetail from "./EventDetail";
 import Chats from "./Chats";
+import { ChatProvider } from "./ChatStore";
 import Profile from "./Profile";
 
 export default function App() {
@@ -53,35 +54,37 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-warm font-sans">
-      {isLoggedIn && view !== "onboarding" && (
-        <Navbar view={view} navigate={navigate} profile={profile} />
-      )}
-      {view === "landing" && (
-        <Landing onGetStarted={() => navigate("onboarding")} />
-      )}
-      {view === "onboarding" && <Onboarding onComplete={handleComplete} />}
-      {view === "feed" && (
-        <Feed
-          navigate={navigate}
-          profile={profile}
-          events={events}
-          loading={loading}
-          error={error}
-        />
-      )}
-      {view === "event" && (
-        <EventDetail
-          key={selectedEvent}
-          eventId={selectedEvent}
-          navigate={navigate}
-          events={events}
-          loading={loading}
-          error={error}
-        />
-      )}
-      {view === "chats" && <Chats />}
-      {view === "profile" && <Profile navigate={navigate} profile={profile} />}
-    </div>
+    <ChatProvider events={events} profile={profile}>
+      <div className="min-h-screen bg-warm font-sans">
+        {isLoggedIn && view !== "onboarding" && (
+          <Navbar view={view} navigate={navigate} profile={profile} />
+        )}
+        {view === "landing" && (
+          <Landing onGetStarted={() => navigate("onboarding")} />
+        )}
+        {view === "onboarding" && <Onboarding onComplete={handleComplete} />}
+        {view === "feed" && (
+          <Feed
+            navigate={navigate}
+            profile={profile}
+            events={events}
+            loading={loading}
+            error={error}
+          />
+        )}
+        {view === "event" && (
+          <EventDetail
+            key={selectedEvent}
+            eventId={selectedEvent}
+            navigate={navigate}
+            events={events}
+            loading={loading}
+            error={error}
+          />
+        )}
+        {view === "chats" && <Chats navigate={navigate} />}
+        {view === "profile" && <Profile navigate={navigate} profile={profile} />}
+      </div>
+    </ChatProvider>
   );
 }

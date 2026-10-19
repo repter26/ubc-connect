@@ -1,59 +1,7 @@
-import { useEffect, useState } from "react";
-
-interface PollOption {
-  label: string;
-  voters: string[];
-}
-interface PollMessage {
-  id: number;
-  type: "poll";
-  user: string;
-  avatar: string;
-  time: string;
-  question: string;
-  options: PollOption[];
-}
-interface TextMessage {
-  id: number;
-  type: "text";
-  user: string;
-  avatar: string;
-  text: string;
-  time: string;
-}
-interface SystemMessage {
-  id: number;
-  type: "system";
-  text: string;
-}
-type ChatItem = PollMessage | TextMessage | SystemMessage;
-
-interface Member {
-  name: string;
-  avatar: string;
-  year: string;
-  you?: boolean;
-}
-
-import { io } from "socket.io-client";
-
-const socket = io(import.meta.env.VITE_API_URL);
-
-// client-side
-socket.on("connect", () => {
-  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
-});
-
-interface Room {
-  id: string;
-  name: string;
-  emoji: string;
-  interest: string;
-  maxSize: number;
-  description: string;
-  members: Member[];
-  chat: ChatItem[];
-}
+import { useState } from "react";
+import { useChatStore } from "./chatContext";
+import type { View } from "./types";
+import EventChatPlan from "./EventChatPlan";
 
 const POLL_TEMPLATES = [
   {
@@ -79,255 +27,65 @@ const POLL_TEMPLATES = [
   },
 ];
 
-const ROOMS: Room[] = [
-  {
-    id: "1",
-    name: "Trail Crew",
-    emoji: "🥾",
-    interest: "Hiking",
-    maxSize: 6,
-    description:
-      "Small group for hikes, trail planning, and outdoor adventures",
-    members: [
-      { name: "Sam R.", avatar: "S", year: "3rd" },
-      { name: "Nina P.", avatar: "N", year: "2nd" },
-      { name: "Ben K.", avatar: "B", year: "4th" },
-      { name: "Maya T.", avatar: "M", year: "1st" },
-      { name: "You", avatar: "A", year: "3rd", you: true },
-    ],
-    chat: [],
-  },
-  {
-    id: "2",
-    name: "Debug Squad",
-    emoji: "💻",
-    interest: "Coding",
-    maxSize: 6,
-    description: "CS and tech students — study sessions, projects, hackathons",
-    members: [
-      { name: "Leila H.", avatar: "L", year: "3rd" },
-      { name: "Chris T.", avatar: "C", year: "2nd" },
-      { name: "Dev M.", avatar: "D", year: "4th" },
-      { name: "You", avatar: "A", year: "3rd", you: true },
-    ],
-    chat: [
-      {
-        id: 1,
-        type: "text",
-        user: "Leila H.",
-        avatar: "L",
-        text: "Hack the Change team forming — need a designer. Anyone know one?",
-        time: "9:15 AM",
-      },
-      {
-        id: 2,
-        type: "text",
-        user: "Chris T.",
-        avatar: "C",
-        text: "My roommate does UI/UX, I'll ask her",
-        time: "9:22 AM",
-      },
-      {
-        id: 3,
-        type: "poll",
-        user: "Dev M.",
-        avatar: "D",
-        time: "9:40 AM",
-        question: "Group study this week?",
-        options: [
-          { label: "📚 ICICS 246 Wednesday", voters: ["Dev M.", "Leila H."] },
-          { label: "☕ Koerner Library Thursday", voters: ["Chris T."] },
-          { label: "Can't make it this week", voters: [] },
-        ],
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Frame Rate",
-    emoji: "🎬",
-    interest: "Film",
-    maxSize: 6,
-    description:
-      "Film fans sharing recs, attending screenings, dissecting directors",
-    members: [
-      { name: "Jamie L.", avatar: "J", year: "2nd" },
-      { name: "Aisha K.", avatar: "A", year: "3rd" },
-      { name: "Priya S.", avatar: "P", year: "1st" },
-      { name: "Ryo N.", avatar: "R", year: "4th" },
-      { name: "You", avatar: "A", year: "3rd", you: true },
-    ],
-    chat: [
-      {
-        id: 1,
-        type: "text",
-        user: "Jamie L.",
-        avatar: "J",
-        text: "Ghibli marathon Saturday. Spirited Away → Mononoke → Howl's. Who's in?",
-        time: "Yesterday",
-      },
-      {
-        id: 2,
-        type: "text",
-        user: "Aisha K.",
-        avatar: "A",
-        text: "Obviously. Bringing blankets and I will cry.",
-        time: "Yesterday",
-      },
-      {
-        id: 3,
-        type: "poll",
-        user: "Priya S.",
-        avatar: "P",
-        time: "Yesterday",
-        question: "Ramen in Wesbrook after?",
-        options: [
-          {
-            label: "🍜 Yes — Jinya Ramen",
-            voters: ["Priya S.", "Aisha K.", "Jamie L."],
-          },
-          { label: "🍣 Sushi instead", voters: ["Ryo N."] },
-          { label: "Head home after", voters: [] },
-        ],
-      },
-    ],
-  },
-  {
-    id: "4",
-    name: "Dice Night",
-    emoji: "🎲",
-    interest: "Board Games",
-    maxSize: 6,
-    description:
-      "Weekly board game nights — strategy, party games, everything goes",
-    members: [
-      { name: "Marcus W.", avatar: "M", year: "4th" },
-      { name: "Jordan T.", avatar: "J", year: "2nd" },
-      { name: "Soo-Jin L.", avatar: "S", year: "3rd" },
-      { name: "You", avatar: "A", year: "3rd", you: true },
-    ],
-    chat: [
-      {
-        id: 1,
-        type: "text",
-        user: "Marcus W.",
-        avatar: "M",
-        text: "Settlers of Catan at Koerner's Friday 6pm. 2 spots left!",
-        time: "2:00 PM",
-      },
-      {
-        id: 2,
-        type: "poll",
-        user: "Jordan T.",
-        avatar: "J",
-        time: "2:30 PM",
-        question: "Which game to start with?",
-        options: [
-          { label: "🏙️ Settlers of Catan", voters: ["Marcus W.", "Jordan T."] },
-          { label: "🚂 Ticket to Ride", voters: ["Soo-Jin L."] },
-          { label: "🗺️ Pandemic", voters: [] },
-        ],
-      },
-    ],
-  },
-];
+export default function Chats({ navigate }: { navigate: (view: View, eventId?: string) => void }) {
+  const { joinedRooms, activeId, selectRoom } = useChatStore();
+  const [showList, setShowList] = useState(false);
+  const room = joinedRooms.find((r) => r.id === activeId) ?? joinedRooms[0];
+  if (!room) return (
+    <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+      <h1 className="text-2xl font-semibold text-navy">Your Chats</h1>
+      <p className="text-gray-500 my-4">Join a group from an event to start planning together.</p>
+      <button onClick={() => navigate("feed")} className="bg-navy text-white px-5 py-2 rounded-xl">Explore events</button>
+    </div>
+  );
+  return <Conversation key={room.id} navigate={navigate} showList={showList} setShowList={setShowList} selectRoom={selectRoom} />;
+}
 
-const INITIAL_CHATS = Object.fromEntries(
-  ROOMS.map((r) => [r.id, r.chat as ChatItem[]]),
-);
-
-export default function Chats() {
-  const [activeId, setActiveId] = useState("1");
-  const [chats, setChats] = useState<Record<string, ChatItem[]>>(INITIAL_CHATS);
+function Conversation({ navigate, showList, setShowList, selectRoom }: {
+  navigate: (view: View, eventId?: string) => void;
+  showList: boolean;
+  setShowList: (show: boolean) => void;
+  selectRoom: (id: string) => void;
+}) {
+  const { joinedRooms, activeId, sendText, sendPoll: createPoll, votePoll, leaveRoom } = useChatStore();
+  const room = joinedRooms.find((r) => r.id === activeId) ?? joinedRooms[0]!;
   const [input, setInput] = useState("");
   const [showPollPicker, setShowPollPicker] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
-  const params = new URLSearchParams(window.location.search);
-  const CURRENT_USER = params.get("user") || "Peter";
-  const room = ROOMS.find((r) => r.id === activeId)!;
-  const allItems: ChatItem[] = chats[activeId] ?? [];
-  useEffect(() => {
-    const handleMessage = ({
-      roomId,
-      message,
-    }: {
-      roomId: string;
-      message: ChatItem;
-    }) => {
-      setChats((c) => ({
-        ...c,
-        [roomId]: [...(c[roomId] ?? []), message],
-      }));
-    };
-
-    socket.on("message", handleMessage);
-
-    return () => {
-      socket.off("message", handleMessage);
-    };
-  }, []);
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
+  const allItems = room.chat;
   const send = () => {
     if (!input.trim()) return;
-    const msg: TextMessage = {
-      id: Date.now(),
-      type: "text",
-      user: CURRENT_USER,
-      avatar: "A",
-      text: input,
-      time: "Just now",
-    };
-    socket.emit("message", { roomId: activeId, message: msg });
-    setChats((c) => ({ ...c, [activeId]: [...(c[activeId] ?? []), msg] }));
+    sendText(room.id, input);
     setInput("");
   };
-
-  const sendPoll = (tpl: { question: string; options: string[] }) => {
-    const poll: PollMessage = {
-      id: Date.now(),
-      type: "poll",
-      user: "You",
-      avatar: "A",
-      time: "Just now",
-      question: tpl.question,
-      options: tpl.options.map((o) => ({ label: o, voters: [] })),
-    };
-    socket.emit("message", { roomId: activeId, message: poll });
-    setChats((c) => ({ ...c, [activeId]: [...(c[activeId] ?? []), poll] }));
+  const sendPoll = (template: { question: string; options: string[] }) => {
+    createPoll(room.id, template);
     setShowPollPicker(false);
   };
-
-  const vote = (itemId: number, optionLabel: string) => {
-    setChats((c) => ({
-      ...c,
-      [activeId]: (c[activeId] ?? []).map((item) => {
-        if (item.id !== itemId || item.type !== "poll") return item;
-        const already = item.options.some((o) => o.voters.includes("You"));
-        return {
-          ...item,
-          options: item.options.map((o) => ({
-            ...o,
-            voters:
-              o.label === optionLabel
-                ? already
-                  ? o.voters.filter((v) => v !== "You")
-                  : [...o.voters, "You"]
-                : o.voters.filter((v) => v !== "You"),
-          })),
-        };
-      }),
-    }));
-  };
-
+  const vote = (itemId: number, option: string) => votePoll(room.id, itemId, option);
   return (
-    <div className="max-w-7xl mx-auto px-6 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
+      {leaveConfirm && (
+        <div className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center px-6" role="dialog" aria-modal="true" aria-labelledby="leave-title">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h2 id="leave-title" className="font-semibold text-navy text-lg">Leave {room.name}?</h2>
+            <p className="text-gray-500 text-sm my-4">{room.kind === "event" ? "You'll give up your spot in this event room and no longer be marked as going. The room will be removed from Chats." : "This group will be removed from your Chats."}</p>
+            <div className="flex gap-3">
+              <button autoFocus onClick={() => setLeaveConfirm(false)} className="flex-1 border border-gray-200 py-2 rounded-xl">Cancel</button>
+              <button onClick={() => { leaveRoom(room.id); setShowList(false); }} className="flex-1 bg-red-500 text-white py-2 rounded-xl">Leave group</button>
+            </div>
+          </div>
+        </div>
+      )}
       <h1
         className="font-semibold text-2xl text-navy mb-1"
         style={{ fontFamily: "var(--font-display)" }}
       >
-        Your Groups
+        Your Chats
       </h1>
       <p className="text-gray-400 text-sm mb-5">
-        Interest-based small groups · max 6 people
+        Your joined event rooms, together in one place
       </p>
 
       <div
@@ -335,10 +93,10 @@ export default function Chats() {
         style={{ height: "calc(100vh - 160px)" }}
       >
         {/* Room list sidebar */}
-        <div className="w-64 border-r border-gray-100 flex flex-col flex-shrink-0">
+        <div className={`${showList ? "flex w-full" : "hidden"} md:flex md:w-64 border-r border-gray-100 flex-col flex-shrink-0`}>
           <div className="flex-1 overflow-y-auto">
-            {ROOMS.map((r) => {
-              const roomItems = chats[r.id] ?? [];
+            {joinedRooms.map((r) => {
+              const roomItems = r.chat;
               const lastMsg = [...roomItems]
                 .reverse()
                 .find((i) => i.type === "text" || i.type === "poll");
@@ -351,11 +109,12 @@ export default function Chats() {
                 <button
                   key={r.id}
                   onClick={() => {
-                    setActiveId(r.id);
+                    selectRoom(r.id);
+                    setShowList(false);
                     setShowMembers(false);
                     setShowPollPicker(false);
                   }}
-                  className={`w-full flex items-start gap-3 px-4 py-3.5 border-b border-gray-50 text-left transition-colors hover:bg-gray-50 ${activeId === r.id ? "bg-campus border-l-2 border-l-navy" : ""}`}
+                  className={`w-full flex items-start gap-3 px-4 py-3.5 border-b border-gray-50 text-left transition-colors hover:bg-gray-50 ${room.id === r.id ? "bg-campus border-l-2 border-l-navy" : ""}`}
                 >
                   <div className="w-9 h-9 bg-campus rounded-xl flex items-center justify-center text-lg flex-shrink-0">
                     {r.emoji}
@@ -364,11 +123,12 @@ export default function Chats() {
                     <div className="font-medium text-navy text-sm truncate">
                       {r.name}
                     </div>
+                    <div className="text-xs text-navy/60 truncate">{r.kind === "event" ? `Event · ${r.event?.title}` : `Interest · ${r.interest}`}</div>
                     <div className="text-gray-400 text-xs truncate mt-0.5">
                       {preview}
                     </div>
                     <div className="text-gray-300 text-xs mt-1">
-                      {r.members.length}/{r.maxSize} members
+                      {r.members.length}/{r.capacity} members
                     </div>
                   </div>
                 </button>
@@ -378,27 +138,29 @@ export default function Chats() {
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={`${showList ? "hidden md:flex" : "flex"} flex-1 flex-col min-w-0`}>
           {/* Header */}
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="px-3 sm:px-5 py-4 border-b border-gray-100 flex items-center gap-2 sm:gap-3">
+            <button className="md:hidden text-sm text-navy" onClick={() => setShowList(true)} aria-label="Show conversations">← Chats</button>
             <div className="text-2xl">{room.emoji}</div>
             <div className="flex-1 min-w-0">
               <h2
-                className="font-semibold text-navy"
+                className="font-semibold text-navy truncate"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {room.name}
               </h2>
-              <p className="text-gray-400 text-xs">
-                {room.interest} · {room.members.length}/{room.maxSize} members
+              <p className="text-gray-400 text-xs truncate">
+                {room.kind === "event" ? room.event?.title : room.interest} · {room.members.length}/{room.capacity} members
               </p>
             </div>
             <button
               onClick={() => setShowMembers((m) => !m)}
               title="Members"
-              className={`flex -space-x-2 hover:opacity-80 transition-opacity`}
+              className="flex -space-x-2 hover:opacity-80 transition-opacity shrink-0"
+              aria-label="Show members"
             >
-              {room.members.slice(0, 6).map((m, i) => (
+              {room.members.slice(0, 3).map((m, i) => (
                 <div
                   key={i}
                   title={m.name}
@@ -410,10 +172,13 @@ export default function Chats() {
             </button>
           </div>
 
-          <div className="flex flex-1 min-h-0">
+          {room.event && <EventChatPlan room={room} navigate={navigate} />}
+          <button onClick={() => setLeaveConfirm(true)} className="self-end text-xs text-red-500 px-5 py-2 hover:underline">Leave group</button>
+          <div className="flex flex-1 min-h-0 relative">
             {/* Messages */}
             <div className="flex-1 flex flex-col min-w-0">
               <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                {allItems.length === 0 && <p className="text-center text-sm text-gray-400 py-8">No messages yet. Say hello to your group!</p>}
                 {allItems.map((item) => {
                   if (item.type === "system")
                     return (
@@ -532,7 +297,7 @@ export default function Chats() {
                     );
                   }
 
-                  const isYou = item.user === CURRENT_USER;
+                  const isYou = item.user === "You";
 
                   return (
                     <div
@@ -586,7 +351,7 @@ export default function Chats() {
                       &times;
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                     {POLL_TEMPLATES.map((t) => (
                       <button
                         key={t.question}
@@ -630,7 +395,7 @@ export default function Chats() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && send()}
                   placeholder={`Message ${room.name} or tap 📊 for a poll…`}
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-navy transition-colors"
+                  className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-sm focus:outline-none focus:border-navy transition-colors"
                 />
                 <button
                   onClick={send}
@@ -643,13 +408,13 @@ export default function Chats() {
 
             {/* Members panel — toggled from header */}
             {showMembers && (
-              <div className="w-56 border-l border-gray-100 flex flex-col flex-shrink-0">
+              <div className="absolute inset-0 z-10 bg-white md:static md:w-56 border-l border-gray-100 flex flex-col flex-shrink-0">
                 <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
                   <div className="text-xs font-medium text-gray-400 uppercase tracking-widest">
-                    Members
+                    Members <button onClick={() => setShowMembers(false)} className="ml-3 text-navy" aria-label="Close members">×</button>
                   </div>
                   <span className="text-xs text-gray-400">
-                    {room.members.length}/{room.maxSize}
+                    {room.members.length}/{room.capacity}
                   </span>
                 </div>
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
