@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/server.ts",
-    "backfill:rooms": "tsx src/backfill-rooms.ts"
+    "backfill:rooms": "tsx src/backfill-rooms.ts",
+    "import:ams": "tsx src/importers/ams.ts"
   },
   "keywords": [],
   "author": "",

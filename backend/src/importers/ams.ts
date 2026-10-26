@@ -1,174 +1,19 @@
-import { randomUUID } from "node:crypto";
-import { prisma } from "../db.js";
-import { convert } from "html-to-text";
+import { AmsImportError, importAmsEvents, saveAmsEvent } from "./ams-import.js";
 
-const AMS_API = "https://www.ams.ubc.ca/wp-json/tribe/events/v1/events";
-
-type AmsVenue = {
-  venue?: string;
-  address?: string;
-  city?: string;
-  province?: string;
-  zip?: string;
-};
-type AmsOrganizer = {
-  organizer: string;
-};
-
-type AmsCategory = {
-  name: string;
-};
-
-type AmsTag = {
-  name: string;
-};
-
-type AmsImage =
-  | false
-  | {
-      url: string;
-    };
-
-type AmsEvent = {
-  id: number;
-  title: string;
-  description: string;
-  url: string;
-
-  utc_start_date: string;
-  utc_end_date: string | null;
-  timezone: string;
-
-  venue?: AmsVenue;
-  organizer?: AmsOrganizer[];
-  categories?: AmsCategory[];
-  tags?: AmsTag[];
-  image: AmsImage;
-};
-
-type AmsResponse = {
-  events: AmsEvent[];
-  total: number;
-  total_pages: number;
-};
-
-function parseUtcDate(value: string): Date {
-  return new Date(`${value.replace(" ", "T")}Z`);
-}
-
-function stripHtml(html: string): string {
-  return convert(html, {
-    wordwrap: false,
-  })
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function buildAddress(venue?: AmsVenue): string | null {
-  if (!venue) {
-    return null;
-  }
-
-  const address = [venue.address, venue.city, venue.province, venue.zip]
-    .filter(Boolean)
-    .join(", ");
-
-  return address || null;
-}
-
-async function importAmsEvents() {
-  console.log("Importing AMS events...");
-  let page = 1;
-  let maxPage = 1;
-  do {
-    console.log(`Fetching page ${page}`);
-    const response = await fetch(`${AMS_API}?per_page=100&page=${page}`);
-
-    if (!response.ok) {
-      throw new Error(`AMS request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (
-      typeof data !== "object" ||
-      data === null ||
-      !("events" in data) ||
-      !Array.isArray(data.events)
-    ) {
-      throw new Error("AMS returned an unexpected response structure");
-    }
-
-    const result = data as AmsResponse;
-    maxPage = result.total_pages;
-    for (const amsEvent of result.events) {
-      let eventRooms = [];
-      for (let i = 0; i < 4; i++) {
-        eventRooms.push({
-          id: String(i),
-          name: "Room " + String(i),
-          capacity: 10,
-          eventId: String(amsEvent.id),
-        });
-      }
-
-      const eventData = {
-        externalId: String(amsEvent.id),
-        title: stripHtml(amsEvent.title),
-        organizer: "AMS UBC",
-        source: "ams",
-        category: amsEvent.categories?.[0]?.name ?? "General",
-
-        startsAt: parseUtcDate(amsEvent.utc_start_date),
-        endsAt: amsEvent.utc_end_date
-          ? parseUtcDate(amsEvent.utc_end_date)
-          : null,
-
-        timezone: "America/Vancouver",
-
-        location: amsEvent.venue?.venue ?? "UBC Vancouver",
-        address:
-          buildAddress(amsEvent.venue) ??
-          "6200 University Blvd, Vancouver, BC V6T 1Z4",
-
-        imageUrl: amsEvent.image === false ? null : amsEvent.image.url,
-        tags: amsEvent.tags?.map((tag) => tag.name.toLowerCase()) ?? [],
-
-        description: stripHtml(amsEvent.description),
-        sourceUrl: amsEvent.url,
-      };
-
-      const defaultRooms = Array.from({ length: 4 }, (_, i) => ({
-        name: `Room ${i + 1}`,
-        capacity: 10,
-      }));
-
-      await prisma.event.upsert({
-        where: {
-          source_externalId: {
-            source: "ams",
-            externalId: eventData.externalId,
-          },
-        },
-        update: eventData,
-        create: {
-          ...eventData,
-          rooms: {
-            create: defaultRooms,
-          },
-        },
-      });
-    }
-    console.log(`Imported ${result.events.length} AMS events.`);
-    page++;
-  } while (page <= maxPage);
-}
-
-importAmsEvents()
-  .catch((error) => {
-    console.error("AMS import failed:", error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
+async function main() {
+  // Dynamic import lets configuration failures use the same safe error handling.
+  const { prisma } = await import("../db.js");
+  try {
+    await importAmsEvents({ save: (event) => saveAmsEvent(prisma, event) });
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+}
+
+main().catch((error: unknown) => {
+  // Do not print raw database errors, which can include connection details.
+  console.error(error instanceof AmsImportError
+    ? `AMS import failed: ${error.message}`
+    : "AMS import failed. Verify DATABASE_URL and database availability.");
+  process.exitCode = 1;
+});
