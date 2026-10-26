@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useChatStore } from "./chatContext";
 import type {
   View,
   UserProfile,
@@ -112,6 +113,7 @@ export default function Feed({
   loading,
   error,
 }: FeedProps) {
+  const { joinedRooms } = useChatStore();
   const [category, setCategory] = useState("All");
   const [timeRange, setTimeRange] = useState("All Time");
   const [search, setSearch] = useState("");
@@ -634,7 +636,10 @@ export default function Feed({
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      {event.attendees}
+                      {(() => {
+                        const room = joinedRooms.find((room) => room.eventId === event.id);
+                        return room ? `${room.members.length} going in your room` : "Choose a room";
+                      })()}
                     </div>
                   </div>
                 </div>

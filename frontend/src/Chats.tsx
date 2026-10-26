@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useChatStore } from "./chatContext";
 import type { View } from "./types";
 import EventChatPlan from "./EventChatPlan";
@@ -47,19 +47,46 @@ function Conversation({ navigate, showList, setShowList, selectRoom }: {
   setShowList: (show: boolean) => void;
   selectRoom: (id: string) => void;
 }) {
-  const { joinedRooms, activeId, sendText, sendPoll: createPoll, votePoll, leaveRoom } = useChatStore();
+  const { joinedRooms, activeId, sendText, sendPoll: createPoll, votePoll, leaveRoom, membershipPending } = useChatStore();
   const room = joinedRooms.find((r) => r.id === activeId) ?? joinedRooms[0]!;
   const [input, setInput] = useState("");
   const [showPollPicker, setShowPollPicker] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState(false);
   const allItems = room.chat;
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const messageContentRef = useRef<HTMLDivElement>(null);
+  const followLatestRef = useRef(true);
+
+  useLayoutEffect(() => {
+    const container = messagesRef.current;
+    if (container && followLatestRef.current) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [allItems, showList, showMembers]);
+
+  // Keep the latest message visible as the viewport, group plan, or message
+  // content changes size, unless the user has scrolled up to read history.
+  useEffect(() => {
+    const container = messagesRef.current;
+    const content = messageContentRef.current;
+    if (!container || !content) return;
+    const observer = new ResizeObserver(() => {
+      if (followLatestRef.current) container.scrollTop = container.scrollHeight;
+    });
+    observer.observe(container);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
+
   const send = () => {
     if (!input.trim()) return;
+    followLatestRef.current = true;
     sendText(room.id, input);
     setInput("");
   };
   const sendPoll = (template: { question: string; options: string[] }) => {
+    followLatestRef.current = true;
     createPoll(room.id, template);
     setShowPollPicker(false);
   };
@@ -73,7 +100,9 @@ function Conversation({ navigate, showList, setShowList, selectRoom }: {
             <p className="text-gray-500 text-sm my-4">{room.kind === "event" ? "You'll give up your spot in this event room and no longer be marked as going. The room will be removed from Chats." : "This group will be removed from your Chats."}</p>
             <div className="flex gap-3">
               <button autoFocus onClick={() => setLeaveConfirm(false)} className="flex-1 border border-gray-200 py-2 rounded-xl">Cancel</button>
-              <button onClick={() => { leaveRoom(room.id); setShowList(false); }} className="flex-1 bg-red-500 text-white py-2 rounded-xl">Leave group</button>
+              <button disabled={membershipPending} onClick={async () => {
+                if (await leaveRoom(room.id)) setShowList(false);
+              }} className="flex-1 bg-red-500 text-white py-2 rounded-xl disabled:opacity-50">{membershipPending ? "Leaving…" : "Leave group"}</button>
             </div>
           </div>
         </div>
@@ -176,8 +205,18 @@ function Conversation({ navigate, showList, setShowList, selectRoom }: {
           <button onClick={() => setLeaveConfirm(true)} className="self-end text-xs text-red-500 px-5 py-2 hover:underline">Leave group</button>
           <div className="flex flex-1 min-h-0 relative">
             {/* Messages */}
-            <div className="flex-1 flex flex-col min-w-0">
-              <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            <div className="flex-1 flex flex-col min-w-0 min-h-0">
+              <div
+                ref={messagesRef}
+                className="flex-1 min-h-0 overflow-y-auto"
+                onScroll={(event) => {
+                  const container = event.currentTarget;
+                  if (container.clientHeight === 0) return;
+                  followLatestRef.current =
+                    container.scrollHeight - container.scrollTop - container.clientHeight <= 48;
+                }}
+              >
+                <div ref={messageContentRef} className="p-5 space-y-3">
                 {allItems.length === 0 && <p className="text-center text-sm text-gray-400 py-8">No messages yet. Say hello to your group!</p>}
                 {allItems.map((item) => {
                   if (item.type === "system")
@@ -336,6 +375,7 @@ function Conversation({ navigate, showList, setShowList, selectRoom }: {
                     </div>
                   );
                 })}
+                </div>
               </div>
 
               {showPollPicker && (

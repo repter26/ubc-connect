@@ -10,4 +10,6 @@
  */
 export type * from './models/Event.js'
 export type * from './models/Room.js'
+export type * from './models/Membership.js'
+export type * from './models/Message.js'
 export type * from './commonInputTypes.js'

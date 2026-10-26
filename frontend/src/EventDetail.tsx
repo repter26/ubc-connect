@@ -51,7 +51,7 @@ const TRUST_TIER_META: Record<
 
 export default function EventDetail({ eventId, navigate, events, loading, error }: EventDetailProps) {
   const [tab, setTab] = useState<"info" | "groups">("info");
-  const { rooms, joinedRooms, going, joinRoom, selectRoom, toggleAttendance } = useChatStore();
+  const { rooms, joinedRooms, joinRoom, selectRoom, membershipPending } = useChatStore();
   const [MY_TRUST] = useState<TrustTier>("regular");
   const myStrikes = 0;
   const event = events.find((e) => e.id === eventId);
@@ -66,13 +66,12 @@ export default function EventDetail({ eventId, navigate, events, loading, error 
   const groups = rooms.filter((room) => room.kind === "event" && room.eventId === event.id);
   const joinedGroup = joinedRooms.find((room) => room.kind === "event" && room.eventId === event.id);
   const joinedGroupId = joinedGroup?.id ?? null;
-  const isGoing = going[event.id] ?? false;
   const openChat = (id: string) => {
     selectRoom(id);
     navigate("chats");
   };
-  const joinGroup = (id: string) => {
-    if (MY_TRUST !== "restricted" && joinRoom(id)) navigate("chats");
+  const joinGroup = async (id: string) => {
+    if (MY_TRUST !== "restricted" && await joinRoom(id)) navigate("chats");
   };
   // ── Event detail view ───────────────────────────────────────────────────────
   return (
@@ -130,49 +129,32 @@ export default function EventDetail({ eventId, navigate, events, loading, error 
           <InfoItem icon="location" text={event.location} />
           <InfoItem
             icon="people"
-            text={`${event.attendees + (isGoing ? 1 : 0)} going`}
+            text={joinedGroup ? `${joinedGroup.members.length} going in your room` : "Join a room to see who’s going"}
           />
           <div className="ml-auto flex items-center gap-2">
-            {joinedGroup && (
-              <button
-                onClick={() => openChat(joinedGroup!.id)}
-                className="flex items-center gap-1.5 bg-campus text-navy border border-navy/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-navy hover:text-white transition-colors"
-              >
-                <span className="w-2 h-2 bg-green-500 rounded-full" />
-                Open group chat
-              </button>
-            )}
             <button
-              onClick={() => toggleAttendance(event.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isGoing ? "bg-green-500 text-white hover:bg-green-600" : "bg-gold text-navy hover:bg-gold-dark"}`}
+              onClick={() => joinedGroup ? openChat(joinedGroup.id) : setTab("groups")}
+              disabled={membershipPending}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 ${joinedGroup ? "bg-green-500 text-white hover:bg-green-600" : "bg-gold text-navy hover:bg-gold-dark"}`}
             >
-              {isGoing ? "✓ You're going" : "I'm going →"}
+              {joinedGroup ? "✓ You’re going · Open chat" : "Choose a room →"}
             </button>
           </div>
         </div>
         <div className="px-5 py-3 flex items-center gap-3">
           <div className="flex -space-x-2">
-            {event.going.map((g, i) => (
+            {(joinedGroup?.members ?? []).map((g, i) => (
               <div
                 key={i}
                 title={g.name}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white ${g.mutual ? "bg-navy text-white" : "bg-gray-200 text-gray-500"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white ${g.you ? "bg-gold text-navy" : "bg-navy text-white"}`}
               >
                 {g.avatar}
               </div>
             ))}
-            {isGoing && (
-              <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-xs font-bold border-2 border-white text-navy">
-                You
-              </div>
-            )}
           </div>
           <span className="text-gray-400 text-sm">
-            {event.going
-              .filter((g) => g.mutual)
-              .map((g) => g.name.split(" ")[0])
-              .join(", ")}
-            {event.going.some((g) => g.mutual) && " and others are going"}
+            {joinedGroup ? joinedGroup.members.map((member) => member.name).join(", ") : "Choose a room to go together"}
           </span>
         </div>
       </div>
@@ -433,7 +415,7 @@ export default function EventDetail({ eventId, navigate, events, loading, error 
                           onClick={() =>
                             !meRestricted && !full && joinGroup(group.id)
                           }
-                          disabled={full || meRestricted}
+                          disabled={full || meRestricted || membershipPending}
                           title={
                             meRestricted
                               ? "Your account is restricted — visit your profile"
@@ -445,7 +427,7 @@ export default function EventDetail({ eventId, navigate, events, loading, error 
                             ? "🚫 Restricted"
                             : full
                               ? "Full"
-                              : "Join →"}
+                              : membershipPending ? "Please wait…" : "Join →"}
                         </button>
                       )}
                     </div>

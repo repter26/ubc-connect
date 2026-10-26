@@ -209,6 +209,8 @@ export type RoomWhereInput = {
   capacity?: Prisma.IntFilter<"Room"> | number
   eventId?: Prisma.StringFilter<"Room"> | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
+  messages?: Prisma.MessageListRelationFilter
+  memberships?: Prisma.MembershipListRelationFilter
 }
 
 export type RoomOrderByWithRelationInput = {
@@ -217,6 +219,8 @@ export type RoomOrderByWithRelationInput = {
   capacity?: Prisma.SortOrder
   eventId?: Prisma.SortOrder
   event?: Prisma.EventOrderByWithRelationInput
+  messages?: Prisma.MessageOrderByRelationAggregateInput
+  memberships?: Prisma.MembershipOrderByRelationAggregateInput
 }
 
 export type RoomWhereUniqueInput = Prisma.AtLeast<{
@@ -228,6 +232,8 @@ export type RoomWhereUniqueInput = Prisma.AtLeast<{
   capacity?: Prisma.IntFilter<"Room"> | number
   eventId?: Prisma.StringFilter<"Room"> | string
   event?: Prisma.XOR<Prisma.EventScalarRelationFilter, Prisma.EventWhereInput>
+  messages?: Prisma.MessageListRelationFilter
+  memberships?: Prisma.MembershipListRelationFilter
 }, "id">
 
 export type RoomOrderByWithAggregationInput = {
@@ -257,6 +263,8 @@ export type RoomCreateInput = {
   name: string
   capacity: number
   event: Prisma.EventCreateNestedOneWithoutRoomsInput
+  messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutRoomInput
 }
 
 export type RoomUncheckedCreateInput = {
@@ -264,6 +272,8 @@ export type RoomUncheckedCreateInput = {
   name: string
   capacity: number
   eventId: string
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutRoomInput
 }
 
 export type RoomUpdateInput = {
@@ -271,6 +281,8 @@ export type RoomUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   event?: Prisma.EventUpdateOneRequiredWithoutRoomsNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutRoomNestedInput
 }
 
 export type RoomUncheckedUpdateInput = {
@@ -278,6 +290,8 @@ export type RoomUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   eventId?: Prisma.StringFieldUpdateOperationsInput | string
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutRoomNestedInput
 }
 
 export type RoomCreateManyInput = {
@@ -339,6 +353,11 @@ export type RoomSumOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
 }
 
+export type RoomScalarRelationFilter = {
+  is?: Prisma.RoomWhereInput
+  isNot?: Prisma.RoomWhereInput
+}
+
 export type RoomCreateNestedManyWithoutEventInput = {
   create?: Prisma.XOR<Prisma.RoomCreateWithoutEventInput, Prisma.RoomUncheckedCreateWithoutEventInput> | Prisma.RoomCreateWithoutEventInput[] | Prisma.RoomUncheckedCreateWithoutEventInput[]
   connectOrCreate?: Prisma.RoomCreateOrConnectWithoutEventInput | Prisma.RoomCreateOrConnectWithoutEventInput[]
@@ -389,16 +408,48 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type RoomCreateNestedOneWithoutMembershipsInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutMembershipsInput, Prisma.RoomUncheckedCreateWithoutMembershipsInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutMembershipsInput
+  connect?: Prisma.RoomWhereUniqueInput
+}
+
+export type RoomUpdateOneRequiredWithoutMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutMembershipsInput, Prisma.RoomUncheckedCreateWithoutMembershipsInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutMembershipsInput
+  upsert?: Prisma.RoomUpsertWithoutMembershipsInput
+  connect?: Prisma.RoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RoomUpdateToOneWithWhereWithoutMembershipsInput, Prisma.RoomUpdateWithoutMembershipsInput>, Prisma.RoomUncheckedUpdateWithoutMembershipsInput>
+}
+
+export type RoomCreateNestedOneWithoutMessagesInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutMessagesInput, Prisma.RoomUncheckedCreateWithoutMessagesInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutMessagesInput
+  connect?: Prisma.RoomWhereUniqueInput
+}
+
+export type RoomUpdateOneRequiredWithoutMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutMessagesInput, Prisma.RoomUncheckedCreateWithoutMessagesInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutMessagesInput
+  upsert?: Prisma.RoomUpsertWithoutMessagesInput
+  connect?: Prisma.RoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RoomUpdateToOneWithWhereWithoutMessagesInput, Prisma.RoomUpdateWithoutMessagesInput>, Prisma.RoomUncheckedUpdateWithoutMessagesInput>
+}
+
 export type RoomCreateWithoutEventInput = {
   id?: string
   name: string
   capacity: number
+  messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutRoomInput
 }
 
 export type RoomUncheckedCreateWithoutEventInput = {
   id?: string
   name: string
   capacity: number
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutRoomInput
 }
 
 export type RoomCreateOrConnectWithoutEventInput = {
@@ -437,6 +488,102 @@ export type RoomScalarWhereInput = {
   eventId?: Prisma.StringFilter<"Room"> | string
 }
 
+export type RoomCreateWithoutMembershipsInput = {
+  id?: string
+  name: string
+  capacity: number
+  event: Prisma.EventCreateNestedOneWithoutRoomsInput
+  messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
+}
+
+export type RoomUncheckedCreateWithoutMembershipsInput = {
+  id?: string
+  name: string
+  capacity: number
+  eventId: string
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
+}
+
+export type RoomCreateOrConnectWithoutMembershipsInput = {
+  where: Prisma.RoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.RoomCreateWithoutMembershipsInput, Prisma.RoomUncheckedCreateWithoutMembershipsInput>
+}
+
+export type RoomUpsertWithoutMembershipsInput = {
+  update: Prisma.XOR<Prisma.RoomUpdateWithoutMembershipsInput, Prisma.RoomUncheckedUpdateWithoutMembershipsInput>
+  create: Prisma.XOR<Prisma.RoomCreateWithoutMembershipsInput, Prisma.RoomUncheckedCreateWithoutMembershipsInput>
+  where?: Prisma.RoomWhereInput
+}
+
+export type RoomUpdateToOneWithWhereWithoutMembershipsInput = {
+  where?: Prisma.RoomWhereInput
+  data: Prisma.XOR<Prisma.RoomUpdateWithoutMembershipsInput, Prisma.RoomUncheckedUpdateWithoutMembershipsInput>
+}
+
+export type RoomUpdateWithoutMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  event?: Prisma.EventUpdateOneRequiredWithoutRoomsNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
+}
+
+export type RoomUncheckedUpdateWithoutMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  eventId?: Prisma.StringFieldUpdateOperationsInput | string
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
+}
+
+export type RoomCreateWithoutMessagesInput = {
+  id?: string
+  name: string
+  capacity: number
+  event: Prisma.EventCreateNestedOneWithoutRoomsInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutRoomInput
+}
+
+export type RoomUncheckedCreateWithoutMessagesInput = {
+  id?: string
+  name: string
+  capacity: number
+  eventId: string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutRoomInput
+}
+
+export type RoomCreateOrConnectWithoutMessagesInput = {
+  where: Prisma.RoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.RoomCreateWithoutMessagesInput, Prisma.RoomUncheckedCreateWithoutMessagesInput>
+}
+
+export type RoomUpsertWithoutMessagesInput = {
+  update: Prisma.XOR<Prisma.RoomUpdateWithoutMessagesInput, Prisma.RoomUncheckedUpdateWithoutMessagesInput>
+  create: Prisma.XOR<Prisma.RoomCreateWithoutMessagesInput, Prisma.RoomUncheckedCreateWithoutMessagesInput>
+  where?: Prisma.RoomWhereInput
+}
+
+export type RoomUpdateToOneWithWhereWithoutMessagesInput = {
+  where?: Prisma.RoomWhereInput
+  data: Prisma.XOR<Prisma.RoomUpdateWithoutMessagesInput, Prisma.RoomUncheckedUpdateWithoutMessagesInput>
+}
+
+export type RoomUpdateWithoutMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  event?: Prisma.EventUpdateOneRequiredWithoutRoomsNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutRoomNestedInput
+}
+
+export type RoomUncheckedUpdateWithoutMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  eventId?: Prisma.StringFieldUpdateOperationsInput | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutRoomNestedInput
+}
+
 export type RoomCreateManyEventInput = {
   id?: string
   name: string
@@ -447,12 +594,16 @@ export type RoomUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutRoomNestedInput
 }
 
 export type RoomUncheckedUpdateManyWithoutEventInput = {
@@ -462,6 +613,44 @@ export type RoomUncheckedUpdateManyWithoutEventInput = {
 }
 
 
+/**
+ * Count Type RoomCountOutputType
+ */
+
+export type RoomCountOutputType = {
+  messages: number
+  memberships: number
+}
+
+export type RoomCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  messages?: boolean | RoomCountOutputTypeCountMessagesArgs
+  memberships?: boolean | RoomCountOutputTypeCountMembershipsArgs
+}
+
+/**
+ * RoomCountOutputType without action
+ */
+export type RoomCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomCountOutputType
+   */
+  select?: Prisma.RoomCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * RoomCountOutputType without action
+ */
+export type RoomCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageWhereInput
+}
+
+/**
+ * RoomCountOutputType without action
+ */
+export type RoomCountOutputTypeCountMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MembershipWhereInput
+}
+
 
 export type RoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -469,6 +658,9 @@ export type RoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   capacity?: boolean
   eventId?: boolean
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
+  messages?: boolean | Prisma.Room$messagesArgs<ExtArgs>
+  memberships?: boolean | Prisma.Room$membershipsArgs<ExtArgs>
+  _count?: boolean | Prisma.RoomCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["room"]>
 
 export type RoomSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -497,6 +689,9 @@ export type RoomSelectScalar = {
 export type RoomOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "capacity" | "eventId", ExtArgs["result"]["room"]>
 export type RoomInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
+  messages?: boolean | Prisma.Room$messagesArgs<ExtArgs>
+  memberships?: boolean | Prisma.Room$membershipsArgs<ExtArgs>
+  _count?: boolean | Prisma.RoomCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RoomIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventDefaultArgs<ExtArgs>
@@ -509,6 +704,8 @@ export type $RoomPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Room"
   objects: {
     event: Prisma.$EventPayload<ExtArgs>
+    messages: Prisma.$MessagePayload<ExtArgs>[]
+    memberships: Prisma.$MembershipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -910,6 +1107,8 @@ readonly fields: RoomFieldRefs;
 export interface Prisma__RoomClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   event<T extends Prisma.EventDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventDefaultArgs<ExtArgs>>): Prisma.Prisma__EventClient<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  messages<T extends Prisma.Room$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  memberships<T extends Prisma.Room$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1341,6 +1540,54 @@ export type RoomDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Rooms to delete.
    */
   limit?: number
+}
+
+/**
+ * Room.messages
+ */
+export type Room$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Message
+   */
+  select?: Prisma.MessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Message
+   */
+  omit?: Prisma.MessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageInclude<ExtArgs> | null
+  where?: Prisma.MessageWhereInput
+  orderBy?: Prisma.MessageOrderByWithRelationInput | Prisma.MessageOrderByWithRelationInput[]
+  cursor?: Prisma.MessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageScalarFieldEnum | Prisma.MessageScalarFieldEnum[]
+}
+
+/**
+ * Room.memberships
+ */
+export type Room$membershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Membership
+   */
+  select?: Prisma.MembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Membership
+   */
+  omit?: Prisma.MembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MembershipInclude<ExtArgs> | null
+  where?: Prisma.MembershipWhereInput
+  orderBy?: Prisma.MembershipOrderByWithRelationInput | Prisma.MembershipOrderByWithRelationInput[]
+  cursor?: Prisma.MembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MembershipScalarFieldEnum | Prisma.MembershipScalarFieldEnum[]
 }
 
 /**

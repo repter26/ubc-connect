@@ -14,7 +14,8 @@ export interface PollMessage {
   options: PollOption[];
 }
 export interface TextMessage {
-  id: number;
+  id: string | number;
+  createdAt?: string;
   type: "text";
   user: string;
   avatar: string;
@@ -29,6 +30,7 @@ export interface SystemMessage {
 export type ChatItem = PollMessage | TextMessage | SystemMessage;
 
 export interface Member {
+  sessionId?: string;
   name: string;
   avatar: string;
   year: string;
@@ -53,4 +55,7 @@ export interface ChatRoom {
   chat: ChatItem[];
 }
 export type CoordinationType = "meetup" | "transport";
-export type CoordinationVotes = Record<CoordinationType, Record<string, string[]>>;
+export type CoordinationVotes = Record<
+  CoordinationType,
+  Record<string, string[]>
+>;

@@ -51,3 +51,13 @@ export type Event = Prisma.EventModel
  * 
  */
 export type Room = Prisma.RoomModel
+/**
+ * Model Membership
+ * 
+ */
+export type Membership = Prisma.MembershipModel
+/**
+ * Model Message
+ * 
+ */
+export type Message = Prisma.MessageModel

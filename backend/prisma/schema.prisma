@@ -24,6 +24,7 @@ model Event {
   description String
   sourceUrl   String
   rooms       Room[]
+  memberships Membership[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -38,4 +39,34 @@ model Room {
   capacity Int
   eventId  String
   event    Event @relation(fields: [eventId], references: [id])
+  messages Message[]
+  memberships Membership[]
+}
+
+model Membership {
+  id        String @id @default(uuid())
+  sessionId String
+  eventId   String
+  roomId    String
+  name      String
+  avatar    String
+  year      String
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  room      Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, eventId])
+  @@index([roomId])
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  roomId       String
+  room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId     String
+  senderName   String
+  senderAvatar String
+  text         String
+  createdAt    DateTime @default(now())
+
+  @@index([roomId, createdAt, id])
 }
